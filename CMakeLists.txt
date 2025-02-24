@@ -44,6 +44,7 @@ target_sources(
     PRIVATE
         src/n5/n5.c
         src/n5/alloc.c
+        src/n5/string.c
 )
 
 target_sources(

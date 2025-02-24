@@ -145,6 +145,32 @@ int32_t main(const int32_t argc, const char *const argv[]) {
             literal.data,
             Slice_compare(cstr_cast(local), literal)
         );
+
+        String dynamicString = String_from(&mainAlloc.base, cstr_literal("Hello"));
+        printf(
+            "String_from (capacity: %zu, size: %zu): %s\n",
+            dynamicString.capacity,
+            dynamicString.str.size,
+            dynamicString.str.data
+        );
+        String_concat(&dynamicString, cstr_literal(" there!"));
+        printf(
+            "String_concat (capacity: %zu, size: %zu): %s\n",
+            dynamicString.capacity,
+            dynamicString.str.size,
+            dynamicString.str.data
+        );
+        for (int32_t i = 0; i < 4; ++i) {
+            String_concat(&dynamicString, cstr_slice(dynamicString.str, 2, dynamicString.str.size / 2 - 1));
+            printf(
+                "String_concat recursive #%d (capacity: %zu, size: %zu): %s\n",
+                i + 1,
+                dynamicString.capacity,
+                dynamicString.str.size,
+                dynamicString.str.data
+            );
+        }
+        String_free(&dynamicString);
     }
 
     TestAlloc_deinit(&mainAlloc);
