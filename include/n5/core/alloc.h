@@ -13,10 +13,14 @@ typedef struct IAllocator IAllocator;
 typedef const IAllocator* Allocator;
 
 typedef struct Block Block;
+typedef struct DebugInfo DebugInfo;
 typedef struct AllocInfo AllocInfo;
 typedef struct FreeInfo FreeInfo;
 
 typedef struct Arena Arena;
+
+typedef struct TestAlloc TestAlloc;
+typedef struct TestAllocHeader TestAllocHeader;
 
 struct IAllocator {
     Block (*alloc)(Allocator* self, const AllocInfo* info);
@@ -28,13 +32,20 @@ struct Block {
     size_t size;
 };
 
+struct DebugInfo {
+    const char* file;
+    size_t line;
+};
+
 struct AllocInfo {
     size_t size;
     size_t align;
+    DebugInfo debugInfo;
 };
 
 struct FreeInfo {
     Block memory;
+    DebugInfo debugInfo;
 };
 
 #define Allocator_alloc(self, type, count) ( \
@@ -45,6 +56,7 @@ struct FreeInfo {
     (*(self))->alloc((self), &(AllocInfo) { \
         .size = sizeof(type) * (count), \
         .align = alignof(type), \
+        .debugInfo = { .file = __FILE__, .line = __LINE__ } \
     }) \
 )
 
@@ -55,6 +67,7 @@ struct FreeInfo {
     assert((mem).data != NULL), \
     (*(self))->free((self), &(FreeInfo) { \
         .memory = (mem), \
+        .debugInfo = { .file = __FILE__, .line = __LINE__ } \
     }) \
 )
 
@@ -91,5 +104,21 @@ void Arena_deinit(Arena* self);
 void Arena_reset(Arena* self);
 Block Arena_alloc(Allocator* self, const AllocInfo* info);
 void Arena_free(Allocator* self, const FreeInfo* info);
+
+struct TestAlloc {
+    Allocator base;
+    TestAllocHeader* head;
+};
+
+struct TestAllocHeader {
+    DebugInfo debugInfo;
+    size_t size;
+    TestAllocHeader* next;
+};
+
+TestAlloc TestAlloc_init(void);
+void TestAlloc_deinit(TestAlloc* self);
+Block TestAlloc_alloc(Allocator* self, const AllocInfo* info);
+void TestAlloc_free(Allocator* self, const FreeInfo* info);
 
 #endif // __N5_ALLOC_H__

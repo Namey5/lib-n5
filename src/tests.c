@@ -83,5 +83,36 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         Arena_deinit(&arena);
     }
 
+    printf("\n");
+
+    {
+        TestAlloc testAlloc = TestAlloc_init();
+
+        struct { int32_t** data; size_t size; } nums = Allocator_createItems(&testAlloc.base, int32_t*, 8);
+
+        printf("TestAlloc - %zu int pointers (%p):\n", nums.size, (void*)nums.data);
+        for (size_t i = 0; i < nums.size; ++i) {
+            nums.data[i] = Allocator_createItem(&testAlloc.base, int32_t);
+            *nums.data[i] = i * 4;
+            printf("| %zu (%p): %d\n", i + 1, (void*)nums.data[i], *nums.data[i]);
+        }
+
+        printf("Freeing int pointers (%p):\n", (void*)nums.data);
+        for (size_t i = 0; i < nums.size; ++i) {
+            if (i % 2 == 0) {
+                printf("| %zu: %p", i + 1, (void*)nums.data[i]);
+                if (i % 4 == 2) {
+                    printf(" (twice)");
+                    Allocator_destroyItem(&testAlloc.base, nums.data[i]);
+                }
+                printf("\n");
+                Allocator_destroyItem(&testAlloc.base, nums.data[i]);
+            }
+        }
+        Allocator_destroyItems(&testAlloc.base, nums);
+
+        TestAlloc_deinit(&testAlloc);
+    }
+
     return 0;
 }
