@@ -18,9 +18,10 @@ Allocator StdAlloc_init(void) {
 
 Block StdAlloc_alloc(Allocator *const self, const AllocInfo *const info) {
     (void)self;
+    void *const data = malloc(info->size);
     return (Block) {
-        .data = malloc(info->size),
-        .size = info->size,
+        .data = data,
+        .size = (data != NULL) ? info->size : 0,
     };
 }
 
@@ -57,6 +58,7 @@ void Arena_deinit(Arena *const self) {
     assert(self != NULL);
     assert(self->owner != NULL);
     Allocator_free(self->owner, self->pool);
+    *self = (Arena) { 0 };
 }
 
 void Arena_reset(Arena *const self) {
@@ -131,6 +133,8 @@ void TestAlloc_deinit(TestAlloc *const self) {
         });
         header = next;
     }
+
+    *self = (TestAlloc) { 0 };
 }
 
 Block TestAlloc_alloc(Allocator *const base, const AllocInfo *const info) {

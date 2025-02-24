@@ -17,6 +17,8 @@ int32_t main(const int32_t argc, const char *const argv[]) {
 
     n5_nop();
 
+    TestAlloc mainAlloc = TestAlloc_init();
+
     printf("\n");
 
     {
@@ -26,34 +28,36 @@ int32_t main(const int32_t argc, const char *const argv[]) {
 
     printf("\n");
 
-    Allocator stdAlloc = StdAlloc_init();
     {
-        Block memory = Allocator_alloc(&stdAlloc, char, 32);
-        char* buffer = memory.data;
-        buffer[0] = '\0';
-        strncat(buffer, "hello", 32);
-        printf("StdAlloc - buffer: %s\n", buffer);
-        Allocator_free(&stdAlloc, memory);
-    }
-    {
-        int32_t* num = Allocator_createItem(&stdAlloc, int32_t);
-        *num = 17;
-        printf("StdAlloc - num (%p): %d\n", (void*)num, *num);
-        Allocator_destroyItem(&stdAlloc, num);
-    }
-    {
-        Slice(int32_t) nums = Allocator_createItems(&stdAlloc, int32_t, 8);
-        for (size_t i = 0; i < nums.size; ++i) {
-            nums.data[i] = i * 4;
+        Allocator stdAlloc = StdAlloc_init();
+        {
+            Block memory = Allocator_alloc(&stdAlloc, char, 32);
+            char* buffer = memory.data;
+            buffer[0] = '\0';
+            strncat(buffer, "hello", 32);
+            printf("StdAlloc - buffer: %s\n", buffer);
+            Allocator_free(&stdAlloc, memory);
         }
-
-        printf("StdAlloc - nums (size: %zu): ", nums.size);
-        for (size_t i = 0; i < nums.size; ++i) {
-            printf("%d, ", nums.data[i]);
+        {
+            int32_t* num = Allocator_createItem(&stdAlloc, int32_t);
+            *num = 17;
+            printf("StdAlloc - num (%p): %d\n", (void*)num, *num);
+            Allocator_destroyItem(&stdAlloc, num);
         }
-        printf("\n");
+        {
+            Slice(int32_t) nums = Allocator_createItems(&stdAlloc, int32_t, 8);
+            for (size_t i = 0; i < nums.size; ++i) {
+                nums.data[i] = i * 4;
+            }
 
-        Allocator_destroyItems(&stdAlloc, nums);
+            printf("StdAlloc - nums (size: %zu): ", nums.size);
+            for (size_t i = 0; i < nums.size; ++i) {
+                printf("%d, ", nums.data[i]);
+            }
+            printf("\n");
+
+            Allocator_destroyItems(&stdAlloc, nums);
+        }
     }
 
     printf("\n");
@@ -62,7 +66,7 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         const size_t arenaSize = 512;
 
         Arena arena;
-        bool success = Arena_init(&arena, &stdAlloc, arenaSize);
+        bool success = Arena_init(&arena, &mainAlloc.base, arenaSize);
         assert(success);
 
         printf("Arena (%p, size: %zu):\n", arena.pool.data, arena.pool.size);
@@ -136,12 +140,14 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         local.data[3] = 'l';
         literal = cstr_literal("Hello, slices!");
         printf(
-            "local (%s) == literal (%s): %d\n",
+            "local '%s' == literal '%s': %d\n",
             local.data,
             literal.data,
             Slice_compare(cstr_cast(local), literal)
         );
     }
+
+    TestAlloc_deinit(&mainAlloc);
 
     return 0;
 }
