@@ -2,6 +2,7 @@
 #define __N5_ALLOC_H__
 
 #include <stdalign.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 #ifndef assert
@@ -14,6 +15,8 @@ typedef const IAllocator* Allocator;
 typedef struct Block Block;
 typedef struct AllocInfo AllocInfo;
 typedef struct FreeInfo FreeInfo;
+
+typedef struct Arena Arena;
 
 struct IAllocator {
     Block (*alloc)(Allocator* self, const AllocInfo* info);
@@ -75,5 +78,18 @@ struct FreeInfo {
 Allocator StdAlloc_init(void);
 Block StdAlloc_alloc(Allocator* self, const AllocInfo* info);
 void StdAlloc_free(Allocator* self, const FreeInfo* info);
+
+struct Arena {
+    Allocator base;
+    Allocator* owner;
+    Block pool;
+    size_t offset;
+};
+
+bool Arena_init(Arena* self, Allocator* owner, size_t size);
+void Arena_deinit(Arena* self);
+void Arena_reset(Arena* self);
+Block Arena_alloc(Allocator* self, const AllocInfo* info);
+void Arena_free(Allocator* self, const FreeInfo* info);
 
 #endif // __N5_ALLOC_H__

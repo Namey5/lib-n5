@@ -54,5 +54,34 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         Allocator_destroyItems(&stdAlloc, nums);
     }
 
+    printf("\n");
+
+    {
+        const size_t arenaSize = 512;
+
+        Arena arena;
+        bool success = Arena_init(&arena, &stdAlloc, arenaSize);
+        assert(success);
+
+        printf("Arena (%p, size: %zu):\n", arena.pool.data, arena.pool.size);
+        for (int32_t i = 0; i < 32; ++i) {
+            if (i % 16 == 0) {
+                printf("| -- RESETTING --\n");
+                Arena_reset(&arena);
+            }
+
+            int32_t* num = Allocator_createItem(&arena.base, int32_t);
+            *num = i * 4;
+            printf("| offset %zu: num (%p): %d\n", arena.offset, (void*)num, *num);
+
+            if (i % 4 == 0) {
+                printf("| - freeing\n");
+                Allocator_destroyItem(&arena.base, num);
+            }
+        }
+
+        Arena_deinit(&arena);
+    }
+
     return 0;
 }
