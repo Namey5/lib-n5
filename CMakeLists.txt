@@ -38,6 +38,7 @@ target_sources(
             FILES
                 include/n5/n5.h
                 include/n5/alloc.h
+                include/n5/slice.h
                 include/n5/utils.h
     PRIVATE
         src/n5/n5.c

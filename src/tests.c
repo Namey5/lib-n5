@@ -5,6 +5,7 @@
 
 #include "n5/n5.h"
 #include "n5/alloc.h"
+#include "n5/slice.h"
 #include "n5/utils.h"
 
 int32_t main(const int32_t argc, const char *const argv[]) {
@@ -40,7 +41,7 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         Allocator_destroyItem(&stdAlloc, num);
     }
     {
-        struct { int32_t* data; size_t size; } nums = Allocator_createItems(&stdAlloc, int32_t, 8);
+        Slice(int32_t) nums = Allocator_createItems(&stdAlloc, int32_t, 8);
         for (size_t i = 0; i < nums.size; ++i) {
             nums.data[i] = i * 4;
         }
@@ -88,7 +89,7 @@ int32_t main(const int32_t argc, const char *const argv[]) {
     {
         TestAlloc testAlloc = TestAlloc_init();
 
-        struct { int32_t** data; size_t size; } nums = Allocator_createItems(&testAlloc.base, int32_t*, 8);
+        Slice(int32_t*) nums = Allocator_createItems(&testAlloc.base, int32_t*, 8);
 
         printf("TestAlloc - %zu int pointers (%p):\n", nums.size, (void*)nums.data);
         for (size_t i = 0; i < nums.size; ++i) {
