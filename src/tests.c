@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "n5/n5.h"
 #include "n5/alloc.h"
 #include "n5/slice.h"
 #include "n5/string.h"
@@ -14,8 +13,6 @@ int32_t main(const int32_t argc, const char *const argv[]) {
     for (int32_t i = 0; i < argc; ++i) {
         printf("| %s\n", argv[i]);
     }
-
-    n5_nop();
 
     TestAlloc mainAlloc = TestAlloc_init();
 

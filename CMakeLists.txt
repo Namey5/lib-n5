@@ -36,13 +36,11 @@ target_sources(
         FILE_SET HEADERS
             BASE_DIRS include
             FILES
-                include/n5/n5.h
                 include/n5/alloc.h
                 include/n5/slice.h
                 include/n5/string.h
                 include/n5/utils.h
     PRIVATE
-        src/n5/n5.c
         src/n5/alloc.c
         src/n5/string.c
 )
