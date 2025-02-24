@@ -18,10 +18,12 @@ typedef struct String String;
 #define str_local(literal) ((str)Slice_from((char[]){ (literal) }, n5_arraySize(literal) - 1))
 
 #define cstr_literal(literal) ((cstr)Slice_from((const char*)(literal), n5_arraySize(literal) - 1))
-#define cstr_cast(string) ((cstr)Slice_from((const char*)(string).data, (string).size))
+#define cstr_cast(string) ((cstr)Slice_from((string).data, (string).size))
 
 #define str_slice(string, offset, len) ((str)Slice_slice((string), (offset), (len)))
 #define cstr_slice(string, offset, len) ((cstr)Slice_slice((string), (offset), (len)))
+
+void str_reverse(str self);
 
 struct String {
     Allocator* owner;
@@ -36,6 +38,12 @@ void String_free(String* self);
 bool String_resize(String* self, size_t capacity);
 bool String_grow(String* self, size_t minSize);
 
-bool String_concat(String* self, cstr other);
+bool String_format(String* self, cstr format, ...);
+bool String_append_char(String* self, char character);
+bool String_append_str(String* self, cstr other);
+bool String_append_u64(String* self, uint64_t value);
+bool String_append_i64(String* self, int64_t value);
+bool String_append_f64(String* self, double value);
+bool String_append_bool(String* self, bool value);
 
 #endif // __N5_STRING_H__

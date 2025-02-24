@@ -153,7 +153,7 @@ int32_t main(const int32_t argc, const char *const argv[]) {
             dynamicString.str.size,
             dynamicString.str.data
         );
-        String_concat(&dynamicString, cstr_literal(" there!"));
+        String_append_str(&dynamicString, cstr_literal(" there!"));
         printf(
             "String_concat (capacity: %zu, size: %zu): %s\n",
             dynamicString.capacity,
@@ -161,7 +161,7 @@ int32_t main(const int32_t argc, const char *const argv[]) {
             dynamicString.str.data
         );
         for (int32_t i = 0; i < 4; ++i) {
-            String_concat(&dynamicString, cstr_slice(dynamicString.str, 2, dynamicString.str.size / 2 - 1));
+            String_append_str(&dynamicString, cstr_slice(dynamicString.str, 2, dynamicString.str.size / 2 - 1));
             printf(
                 "String_concat recursive #%d (capacity: %zu, size: %zu): %s\n",
                 i + 1,
@@ -170,6 +170,21 @@ int32_t main(const int32_t argc, const char *const argv[]) {
                 dynamicString.str.data
             );
         }
+
+        String_format(
+            &dynamicString,
+            cstr_literal("This is a {str} string with some {str} {f32}."),
+            cstr_literal("FORMAT"),
+            cstr_literal("STUFF"),
+            -432.56428678
+        );
+        printf(
+            "String_format (capacity: %zu, size: %zu): %s\n",
+            dynamicString.capacity,
+            dynamicString.str.size,
+            dynamicString.str.data
+        );
+
         String_free(&dynamicString);
     }
 
