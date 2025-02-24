@@ -1,11 +1,11 @@
-#include "n5/core/alloc.h"
+#include "n5/alloc.h"
 
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "n5/core/utils.h"
+#include "n5/utils.h"
 
 const IAllocator StdAllocVtbl = {
     .alloc = StdAlloc_alloc,

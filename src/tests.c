@@ -4,8 +4,8 @@
 #include <string.h>
 
 #include "n5/n5.h"
-#include "n5/core/alloc.h"
-#include "n5/core/utils.h"
+#include "n5/alloc.h"
+#include "n5/utils.h"
 
 int32_t main(const int32_t argc, const char *const argv[]) {
     printf("Running with %d arg(s):\n", argc);
