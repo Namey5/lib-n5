@@ -6,6 +6,7 @@
 #include "n5/n5.h"
 #include "n5/alloc.h"
 #include "n5/slice.h"
+#include "n5/string.h"
 #include "n5/utils.h"
 
 int32_t main(const int32_t argc, const char *const argv[]) {
@@ -113,6 +114,33 @@ int32_t main(const int32_t argc, const char *const argv[]) {
         Allocator_destroyItems(&testAlloc.base, nums);
 
         TestAlloc_deinit(&testAlloc);
+    }
+
+    printf("\n");
+
+    {
+        cstr literal = cstr_literal("This is a literal string.");
+        printf("cstr_literal (size: %zu): %s\n", literal.size, literal.data);
+
+        cstr substring = cstr_slice(literal, 5, 12);
+        printf("cstr slice (size: %zu): ", substring.size);
+        for (const char* c = Slice_start(substring); c < Slice_end(substring); ++c) {
+            printf("%c", *c);
+        }
+        printf("\n");
+
+        str local = str_local("Hello, slices!");
+        local.data[3] = '7';
+        printf("str_local (size: %zu): %s\n", local.size, local.data);
+
+        local.data[3] = 'l';
+        literal = cstr_literal("Hello, slices!");
+        printf(
+            "local (%s) == literal (%s): %d\n",
+            local.data,
+            literal.data,
+            Slice_compare(cstr_cast(local), literal)
+        );
     }
 
     return 0;
