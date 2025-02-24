@@ -7,6 +7,7 @@
 
 #include "n5/alloc.h"
 #include "n5/slice.h"
+#include "n5/utils.h"
 
 #define MIN_CAPACITY 4
 
@@ -58,7 +59,7 @@ bool String_resize(String *const self, size_t capacity) {
     assert(self != NULL);
     assert(self->owner != NULL);
 
-    capacity = (capacity > MIN_CAPACITY) ? capacity : MIN_CAPACITY;
+    capacity = n5_max(capacity, MIN_CAPACITY);
     if (self->capacity == capacity) {
         return true;
     }
@@ -149,19 +150,19 @@ bool String_format(String *const self, const cstr format, ...) {
                     || Slice_compare(specifier, cstr_literal("u32")) == 0
                 ) {
                     uint32_t u32 = va_arg(args, uint32_t);
-                    if (!String_append_u64(self, u32)) {
+                    if (!String_append_u64(self, u32, false)) {
                         fprintf(stderr, "[String_format] error: failed to append u32.\n");
                         goto error;
                     }
                 } else if (Slice_compare(specifier, cstr_literal("u64")) == 0) {
                     uint64_t u64 = va_arg(args, uint64_t);
-                    if (!String_append_u64(self, u64)) {
+                    if (!String_append_u64(self, u64, false)) {
                         fprintf(stderr, "[String_format] error: failed to append u64.\n");
                         goto error;
                     }
                 } else if (Slice_compare(specifier, cstr_literal("usize")) == 0) {
                     uintptr_t usize = va_arg(args, uintptr_t);
-                    if (!String_append_u64(self, usize)) {
+                    if (!String_append_u64(self, usize, false)) {
                         fprintf(stderr, "[String_format] error: failed to append usize.\n");
                         goto error;
                     }
@@ -171,19 +172,19 @@ bool String_format(String *const self, const cstr format, ...) {
                     || Slice_compare(specifier, cstr_literal("i32")) == 0
                 ) {
                     int32_t i32 = va_arg(args, int32_t);
-                    if (!String_append_i64(self, i32)) {
+                    if (!String_append_i64(self, i32, false)) {
                         fprintf(stderr, "[String_format] error: failed to append i32.\n");
                         goto error;
                     }
                 } else if (Slice_compare(specifier, cstr_literal("i64")) == 0) {
                     int64_t i64 = va_arg(args, int64_t);
-                    if (!String_append_i64(self, i64)) {
+                    if (!String_append_i64(self, i64, false)) {
                         fprintf(stderr, "[String_format] error: failed to append i64.\n");
                         goto error;
                     }
                 } else if (Slice_compare(specifier, cstr_literal("isize")) == 0) {
                     intptr_t isize = va_arg(args, intptr_t);
-                    if (!String_append_i64(self, isize)) {
+                    if (!String_append_i64(self, isize, false)) {
                         fprintf(stderr, "[String_format] error: failed to append isize.\n");
                         goto error;
                     }
@@ -198,7 +199,7 @@ bool String_format(String *const self, const cstr format, ...) {
                     }
                 } else if (Slice_compare(specifier, cstr_literal("ptr")) == 0) {
                     void *const ptr = va_arg(args, void*);
-                    if (!String_append_u64(self, (uint64_t)ptr)) {
+                    if (!String_append_u64(self, (uint64_t)ptr, true)) {
                         fprintf(stderr, "[String_format] error: failed to append ptr.\n");
                         goto error;
                     }
@@ -276,17 +277,30 @@ bool String_append_str(String *const self, cstr other) {
     return true;
 }
 
-bool String_append_u64(String *const self, uint64_t value) {
+bool String_append_u64(String *const self, uint64_t value, const bool hex) {
     assert(self != NULL);
 
     const size_t startSize = self->str.size;
-
-    do {
-        if (!String_append_char(self, '0' + (value % 10))) {
+    if (hex) {
+        for (uint64_t i = n5_max(n5_nextPow2(value) - 1, 0xff); i > 0; i >>= 4) {
+            const int8_t x = value & 0x0f;
+            const char c = ((x < 0x0a) ? '0' : ('a' - 0x0a)) + x;
+            if (!String_append_char(self, c)) {
+                goto error;
+            }
+            value >>= 4;
+        }
+        if (!String_append_str(self, cstr_literal("x0"))) {
             goto error;
         }
-        value /= 10;
-    } while (value != 0);
+    } else {
+        do {
+            if (!String_append_char(self, '0' + (value % 10))) {
+                goto error;
+            }
+            value /= 10;
+        } while (value != 0);
+    }
 
     str_reverse(str_slice(self->str, startSize, self->str.size - startSize));
 
@@ -298,8 +312,12 @@ error:
     return false;
 }
 
-bool String_append_i64(String *const self, int64_t value) {
+bool String_append_i64(String *const self, int64_t value, const bool hex) {
     assert(self != NULL);
+
+    if (hex) {
+        return String_append_u64(self, *(uint64_t*)&value, true);
+    }
 
     const size_t startSize = self->str.size;
 
@@ -309,7 +327,7 @@ bool String_append_i64(String *const self, int64_t value) {
         }
         value = -value;
     }
-    return String_append_u64(self, (uint64_t)value);
+    return String_append_u64(self, (uint64_t)value, false);
 
 error:
     self->str.size = startSize;
@@ -329,7 +347,7 @@ bool String_append_f64(String *const self, double value) {
         value = -value;
     }
 
-    if (!String_append_u64(self, (uint64_t)value)) {
+    if (!String_append_u64(self, (uint64_t)value, false)) {
         goto error;
     }
 
@@ -342,7 +360,7 @@ bool String_append_f64(String *const self, double value) {
     for (int32_t i = 0; i < decimalPlaces; ++i) {
         value *= 10.0;
     }
-    return String_append_u64(self, (uint64_t)value);
+    return String_append_u64(self, (uint64_t)value, false);
 
 error:
     self->str.size = startSize;

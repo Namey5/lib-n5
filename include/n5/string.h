@@ -41,8 +41,8 @@ bool String_grow(String* self, size_t minSize);
 bool String_format(String* self, cstr format, ...);
 bool String_append_char(String* self, char character);
 bool String_append_str(String* self, cstr other);
-bool String_append_u64(String* self, uint64_t value);
-bool String_append_i64(String* self, int64_t value);
+bool String_append_u64(String* self, uint64_t value, bool hex);
+bool String_append_i64(String* self, int64_t value, bool hex);
 bool String_append_f64(String* self, double value);
 bool String_append_bool(String* self, bool value);
 
