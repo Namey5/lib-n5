@@ -37,11 +37,15 @@ target_sources(
             BASE_DIRS include
             FILES
                 include/n5/alloc.h
+                include/n5/format.h
                 include/n5/slice.h
+                include/n5/str.h
                 include/n5/string.h
                 include/n5/utils.h
     PRIVATE
         src/n5/alloc.c
+        src/n5/format.c
+        src/n5/str.c
         src/n5/string.c
 )
 

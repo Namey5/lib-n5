@@ -4,7 +4,9 @@
 #include <string.h>
 
 #include "n5/alloc.h"
+#include "n5/format.h"
 #include "n5/slice.h"
+#include "n5/str.h"
 #include "n5/string.h"
 #include "n5/utils.h"
 
