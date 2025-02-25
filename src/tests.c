@@ -170,10 +170,10 @@ int32_t main(const int32_t argc, const char *const argv[]) {
 
         String_format(
             &dynamicString,
-            cstr_literal("This is a {str} string with some {str} {ptr}."),
-            cstr_literal("FORMAT"),
-            cstr_literal("STUFF"),
-            (void*)0x1ff
+            cstr_literal("This is a {0} {{string}} with some {2} {{{1}}}."),
+            FormatArg_from(cstr_literal("FORMAT")),
+            FormatArg_from(cstr_literal("STUFF")),
+            FormatArg_from((uint64_t)0x1ff)
         );
         printf(
             "String_format (capacity: %zu, size: %zu): %s\n",
